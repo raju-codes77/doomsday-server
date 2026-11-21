@@ -7,6 +7,8 @@ let db = null;
 let client = null;
 
 export const connectDB = async () => {
+  if (db) return db;
+
   try {
     const mongoURI = process.env.MONGODB_URI;
 
@@ -26,7 +28,7 @@ export const connectDB = async () => {
     return db;
   } catch (error) {
     console.error('MongoDB connection error:', error.message);
-    process.exit(1);
+    throw error;
   }
 };
 

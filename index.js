@@ -14,6 +14,16 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Ensure database connection middleware for serverless/local
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ message: 'Database connection failed', error: err.message });
+  }
+});
+
 // Routes
 app.use('/api/movies', movieRoutes);
 app.use('/api/cinemas', cinemaRoutes);
@@ -26,18 +36,11 @@ app.get('/', (req, res) => {
   });
 });
 
-// Start server only after successful database connection
-const startServer = async () => {
-  try {
-    await connectDB();
+// Start server locally when not running as a Vercel serverless function
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Doomsday Server running on port ${PORT}`);
+  });
+}
 
-    app.listen(PORT, () => {
-      console.log(`Doomsday Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error.message);
-    process.exit(1);
-  }
-};
-
-startServer();
+export default app;
